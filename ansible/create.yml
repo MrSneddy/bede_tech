@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  become: yes
+  vars_files:
+    - users.yml
+  tasks:
+  
+  - name: create groups
+    group:
+      name: Clearlogs
+      state: present
+
+  - name: Adding Users
+    user: 
+      name: "{{ item.name }}"
+      create_home: no
+      password: "{{ 'password' | password_hash('sha512') }}"
+      update_password: on_create
+      groups: Clearlogs
+    with_items: "{{ users }}"
+
+  - name: Add group to sudo
+    copy:
+      content: "%Clearlogs ALL=(ALL:ALL) NOPASSWD:ALL"
+      dest: /etc/sudoers.d/020_Clearlogs-nopasswd
+      mode: 0440 
+
+  - name: Create it if not
+    file:
+      path: /home/ubuntu/test
+      state: directory
+      owner: "{{ item.name }}"
+      group: Clearlogs
+      mode: 0775
+    with_items: "{{ users }}"
