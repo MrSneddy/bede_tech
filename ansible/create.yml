@@ -3,6 +3,7 @@
   become: yes
   vars_files:
     - users.yml
+  
   tasks:
   
   - name: create groups
@@ -25,21 +26,28 @@
       dest: /etc/sudoers.d/020_Clearlogs-nopasswd
       mode: 0440 
 
-  - name: Create directory
+  - name: create directory if they don't exist
     file:
-      path: /home/scriptadmin/test
+      path: "{{ item }}"
       state: directory
-      owner: "{{ item.name }}"
+      owner: scriptadmin
       group: Clearlogs
       mode: 0775
-    with_items: "{{ users }}"
+    with_items:
+    - /home/scriptadmin/test
+    - /home/scriptadmin/scripts
 
-  - name: Run Cleanup Script
-    script: /home/ubuntu/bede_tech/scripts/space.sh
+  - name: copy script to directory
+    copy: 
+      src: /home/ubuntu/bede_tech/scripts/space.sh
+      dest: /home/scriptadmin/scripts
+      owner: scriptadmin
+      group: Clearlogs
+      mode: 0775
 
   - name: Set Cron job for space script
     cron:
       name: "Clear Logs"
       user: "scriptadmin"
       hour: 23
-      job: "/home/ubuntu/bede_tech/scripts/space.sh"
+      job: "/home/scriptadmin/scripts/space.sh"
