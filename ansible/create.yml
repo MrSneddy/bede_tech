@@ -25,11 +25,21 @@
       dest: /etc/sudoers.d/020_Clearlogs-nopasswd
       mode: 0440 
 
-  - name: Create it if not
+  - name: Create directory
     file:
-      path: /home/ubuntu/test
+      path: /home/scriptadmin/test
       state: directory
       owner: "{{ item.name }}"
       group: Clearlogs
       mode: 0775
     with_items: "{{ users }}"
+
+  - name: Run Cleanup Script
+    script: /home/ubuntu/bede_tech/scripts/space.sh
+
+  - name: Set Cron job for space script
+    cron:
+      name: "Clear Logs"
+      user: "scriptadmin"
+      hour: 23
+      job: "/home/ubuntu/bede_tech/scripts/space.sh"
